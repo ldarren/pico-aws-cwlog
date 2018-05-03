@@ -2,13 +2,8 @@
 
 const AWS = require('aws-sdk')
 const pLog = require('./index')
+
 AWS.config.update({
-  accessKeyId: process.env.AWS_ID,
-  secretAccessKey: process.env.AWS_KEY,
-  region: process.env.AWS || 'ap-southeast-1',
-  timeout: 5000
-})
-console.log({
   accessKeyId: process.env.AWS_ID,
   secretAccessKey: process.env.AWS_KEY,
   region: process.env.AWS || 'ap-southeast-1',
