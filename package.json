@@ -1,0 +1,29 @@
+{
+  "name": "pico-aws-cwlog",
+  "version": "0.1.0",
+  "description": "pico sized aws cloudwatch log agent",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ldarren/pico-aws-cwlog.git"
+  },
+  "keywords": [
+    "pico",
+    "aws",
+    "cloudwatch",
+    "log"
+  ],
+  "author": "Darren Liew",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ldarren/pico-aws-cwlog/issues"
+  },
+  "homepage": "https://github.com/ldarren/pico-aws-cwlog#readme",
+  "dependencies": {
+    "aws-sdk": "^2.230.1",
+    "pico-common": "^0.9.6"
+  }
+}
