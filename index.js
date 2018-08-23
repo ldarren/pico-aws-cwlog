@@ -2,6 +2,9 @@
 const AWS = require('aws-sdk')
 const pico = require('pico-common')
 const pObj = pico.export('pico/obj')
+const UID = function(os, cluster){
+	return '.' + os.hostname() + '-' + (cluster.worker ? cluster.worker.id : 0)
+}(require('os'), require('cluster'))
 
 const debug = process.env.DEBUG ? function(){ console.log.apply(console, arguments) } : function(){}
 
@@ -64,10 +67,15 @@ function upload(ctx){
 	ctx.timeoutId = setTimeout(upload, ctx.cfg.uploadInterval, ctx)
 }
 
+function checkCond(ctx){
+	return (ctx.started && (ctx.cfg.uploadBatchSize <= Object.keys(ctx.log).reduce((size, key) => (size + ctx.log[key].length), 0)))
+}
+
 const Handler = {
 	get(ctx, propKey, receiver) {
 		return function(){
-			const arr = ctx.log[propKey] = ctx.log[propKey] || []
+			const key = propKey + UID
+			const arr = ctx.log[key] = ctx.log[key] || []
 			const msg = 1 < arguments.length ? Array.prototype.slice.call(arguments) : arguments[0]
 			arr.push({message: msg.charAt ? msg : JSON.stringify(msg), timestamp: Date.now()})
 
@@ -75,11 +83,6 @@ const Handler = {
 			return 0
 		}
 	}
-}
-
-function checkCond(ctx){
-	return (ctx.started &&
-		(ctx.cfg.uploadBatchSize <= Object.keys(ctx.log).reduce((size, key) => (size + ctx.log[key].length), 0)))
 }
 
 function start(ctx){
@@ -97,13 +100,11 @@ function createStreams(ctx, cfg, groupName, createdStreams){
 
 	const snames = Object.keys(ctx.tokens)
 
-	const diff = cfg.streams.filter(sname => -1 === snames.indexOf(sname))
+	const diff = cfg.streams.filter(sname => -1 === snames.indexOf(sname + UID))
 	let difflen = diff.length
-	cfg.streams = snames
 	if (!difflen) return start(ctx)
 
-	diff.forEach(sname => ctx.cw.createLogStream({ logGroupName: groupName, logStreamName: sname }, () => {
-		cfg.streams.push(sname)
+	diff.forEach(sname => ctx.cw.createLogStream({ logGroupName: groupName, logStreamName: sname + UID }, () => {
 		if (0 === --difflen) start(ctx)	
 	}))
 }
@@ -133,7 +134,7 @@ module.exports = function(gname, config){
 			case 'ResourceNotFoundException':
 				return ctx.cw.createLogGroup({ logGroupName: gname }, (err, res) => {
 					if (err && 'ResourceAlreadyExistsException' !== err.code) return cb(err)
-					createStreams(ctx, cfg, gname, [])
+					createStreams(ctx, cfg, gname, res.logStreams)
 				})
 			default:
 				return debug(err)
