@@ -21,8 +21,8 @@ const LOGGERS = {}
 const CONTEXTS = []
 
 function cleanup(err) {
-    if (err) debug(err)
-    debug('clean up on exit')
+	if (err) debug(err)
+	debug('clean up on exit')
 	CONTEXTS.forEach(upload)
 }
 
@@ -71,18 +71,27 @@ function checkCond(ctx){
 	return (ctx.started && (ctx.cfg.uploadBatchSize <= Object.keys(ctx.log).reduce((size, key) => (size + ctx.log[key].length), 0)))
 }
 
+function log(ctx, streamName){
+	return function(){
+		const arr = ctx.log[streamName] = ctx.log[streamName] || []
+		const msg = 1 < arguments.length ? Array.prototype.slice.call(arguments) : arguments[0]
+		arr.push({message: msg.charAt ? msg : JSON.stringify(msg), timestamp: Date.now()})
+
+		if (checkCond(ctx)) upload(ctx)
+		return 0
+	}
+}
+
 const Handler = {
 	get(ctx, propKey, receiver) {
-		return function(){
-			const key = propKey + UID
-			const arr = ctx.log[key] = ctx.log[key] || []
-			const msg = 1 < arguments.length ? Array.prototype.slice.call(arguments) : arguments[0]
-			arr.push({message: msg.charAt ? msg : JSON.stringify(msg), timestamp: Date.now()})
-
-			if (checkCond(ctx)) upload(ctx)
-			return 0
-		}
+		return log(ctx, propKey + UID)
 	}
+}
+
+function Logger(ctx){
+	ctx.cfg.streams.forEach(sname => {
+		return log(ctx, sname + UID)
+	})
 }
 
 function start(ctx){
@@ -126,7 +135,7 @@ module.exports = function(gname, config){
 	}
 
 	CONTEXTS.push(ctx)
-	LOGGERS[gname] = new Proxy(ctx, Handler)
+	LOGGERS[gname] = ('undefined' === typeof Proxy ? new Logger(ctx) : new Proxy(ctx, Handler))
 
 	ctx.cw.describeLogStreams({ logGroupName: gname }, (err, res) => {
 		if (err) {
