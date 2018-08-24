@@ -33,7 +33,6 @@ function exit(){
 
 function exception(exp){
 	cleanup()
-	console.error(exp)
 	throw exp
 }
 
@@ -57,7 +56,7 @@ function upload(ctx){
 			logEvents: log[sname],
 			logGroupName: ctx.groupName,
 			logStreamName: sname,
-			sequenceToken: ctx.tokens[sname] || undefined
+			sequenceToken: ctx.tokens[sname]
 		}, (err, res) => {
 			if (err) return debug(err)
 			ctx.tokens[sname] = res.nextSequenceToken
@@ -103,7 +102,7 @@ function start(ctx){
 
 function createStreams(ctx, cfg, groupName, createdStreams){
 	createdStreams.reduce((acc, stream) => {
-		acc[stream.logStreamName] = stream.uploadSequenceToken || ''
+		acc[stream.logStreamName] = stream.uploadSequenceToken
 		return acc
 	}, ctx.tokens)
 
@@ -119,6 +118,10 @@ function createStreams(ctx, cfg, groupName, createdStreams){
 }
 
 module.exports = function(gname, config){
+	if (!gname){
+		if (!CONTEXTS.length) throw new Error('Please create a logger before using it')
+		return LOGGERS[CONTEXTS[0].groupName]
+	}
 	if (LOGGERS[gname]) return LOGGERS[gname]
 
 	const cfg = pObj.extends({}, [ PUBLIC_CONFIG, config ])

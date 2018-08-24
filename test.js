@@ -26,7 +26,7 @@ pLog('test.timer', {
 	streams: ['error', 'log']
 })
 
-let logger = pLog('test.exit')
+let logger = pLog() // get first one by default
 let result = logger.error({code: 1001, msg: 'exit test error'})
 result = result + logger.log('exit test log')
 
