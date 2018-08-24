@@ -90,7 +90,7 @@ const Handler = {
 
 function Logger(ctx){
 	ctx.cfg.streams.forEach(sname => {
-		return log(ctx, sname + UID)
+		this[sname] = log(ctx, sname + UID)
 	})
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "pico-aws-cwlog",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "pico sized aws cloudwatch log agent",
   "main": "index.js",
   "scripts": {
