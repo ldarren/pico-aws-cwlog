@@ -6,7 +6,7 @@ const UID = function(os, cluster){
 	return '.' + os.hostname() + '-' + (cluster.worker ? cluster.worker.id : 0)
 }(require('os'), require('cluster'))
 
-const debug = process.env.DEBUG ? function(){ console.log.apply(console, arguments) } : function(){}
+const debug = process.env.DEBUG ? function(){ console.info.apply(console, arguments) } : function(){}
 
 const PUBLIC_CONFIG = {
 	cloudwatch: {
@@ -72,6 +72,7 @@ function checkCond(ctx){
 
 function log(ctx, streamName){
 	return function(){
+		if (!arguments.length) return 1
 		const arr = ctx.log[streamName] = ctx.log[streamName] || []
 		const msg = 1 < arguments.length ? Array.prototype.slice.call(arguments) : arguments[0]
 		arr.push({message: msg.charAt ? msg : JSON.stringify(msg), timestamp: Date.now()})
