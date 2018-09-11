@@ -146,7 +146,7 @@ module.exports = function(gname, config){
 			case 'ResourceNotFoundException':
 				return ctx.cw.createLogGroup({ logGroupName: gname }, (err, res) => {
 					if (err && 'ResourceAlreadyExistsException' !== err.code) return cb(err)
-					createStreams(ctx, cfg, gname, res.logStreams)
+					createStreams(ctx, cfg, gname, res.logStreams || [])
 				})
 			default:
 				return debug(err)
