@@ -6,8 +6,7 @@ const UID = function(os, cluster){
 	return '.' + os.hostname() + '-' + (cluster.worker ? cluster.worker.id : 0)
 }(require('os'), require('cluster'))
 
-const debug = process.env.DEBUG ? function(){ console.info.apply(console, arguments) } : function(){}
-
+const debug = process.env.DEBUG_PAC ? function(){ console.info.apply(console, arguments) } : function(){}
 const PUBLIC_CONFIG = {
 	cloudwatch: {
 		apiVersion: '2014-03-28'
